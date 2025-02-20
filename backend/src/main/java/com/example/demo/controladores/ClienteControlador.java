@@ -153,7 +153,7 @@ public class ClienteControlador {
         int id;
         String nombre;
         String email;
-        String telefono; // Campo agregado
+        String telefono;
         String username;
         String password;
 
@@ -161,7 +161,7 @@ public class ClienteControlador {
             super();
             this.nombre = nombre;
             this.email = email;
-            this.telefono = telefono; // Campo agregado
+            this.telefono = telefono;
             this.username = username;
             this.password = password;
         }
