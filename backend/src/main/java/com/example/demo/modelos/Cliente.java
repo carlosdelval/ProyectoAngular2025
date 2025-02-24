@@ -15,12 +15,13 @@ public class Cliente {
     private String username;
     private String password;
     private Date fechaRegistro;
+    private String rol;
 
     public Cliente() {
     }
 
     public Cliente(int id, String nombre, String email, String telefono, String username, String password,
-            Date fechaRegistro) {
+            Date fechaRegistro, String rol) {
         this.id = id;
         this.nombre = nombre;
         this.email = email;
@@ -28,6 +29,15 @@ public class Cliente {
         this.password = password;
         this.telefono = telefono;
         this.fechaRegistro = fechaRegistro;
+        this.rol = rol;
+    }
+
+    public String getRol() {
+        return rol;
+    }
+
+    public void setRol(String rol) {
+        this.rol = rol;
     }
 
     public int getId() {

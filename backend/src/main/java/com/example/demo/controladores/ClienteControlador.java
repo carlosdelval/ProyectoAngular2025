@@ -46,6 +46,7 @@ public class ClienteControlador {
             dtoCliente.put("email", c.getEmail());
             dtoCliente.put("telefono", c.getTelefono());
             dtoCliente.put("username", c.getUsername());
+            dtoCliente.put("rol", c.getRol());
             listClientesDTO.add(dtoCliente);
         }
         return listClientesDTO;
@@ -61,6 +62,7 @@ public class ClienteControlador {
             dtoCliente.put("email", c.getEmail());
             dtoCliente.put("telefono", c.getTelefono());
             dtoCliente.put("username", c.getUsername());
+            dtoCliente.put("rol", c.getRol());
         } else {
             dtoCliente.put("result", "fail");
         }
@@ -83,14 +85,15 @@ public class ClienteControlador {
     @PostMapping("/addnew")
     public void addNewCliente(@RequestBody DatosAltaCliente datos) {
         clienteRepo.save(new Cliente(
-            datos.id,
-            datos.nombre,
-            datos.email,
-            datos.telefono, // Campo agregado
-            datos.username,
-            datos.password, // Se guarda la contraseña tal cual como se recibe
-            new Date()
-        ));
+                datos.id,
+                datos.nombre,
+                datos.email,
+                datos.telefono, // Campo agregado
+                datos.username,
+                datos.password, // Se guarda la contraseña tal cual como se recibe
+                new Date(),
+                "cliente" // Rol por defecto
+                ));
     }
 
     @PostMapping(path = "/autentica", consumes = MediaType.APPLICATION_JSON_VALUE)
@@ -98,13 +101,14 @@ public class ClienteControlador {
         DTO dto = new DTO();
         dto.put("result", "FAIL");
 
-        // Se realiza la búsqueda del cliente con username y password tal cual como se reciben
+        // Se realiza la búsqueda del cliente con username y password tal cual como se
+        // reciben
         Cliente clienteAuth = clienteRepo.findByUsernameAndPassword(datos.username, datos.password);
-        
+
         if (clienteAuth != null) {
             dto.put("result", "OK");
             dto.put("jwt", AutenticadorJWT.codificaJWT(clienteAuth)); // Genera el JWT
-            
+
             // Crear y añadir la cookie con el JWT
             Cookie cookie = new Cookie("jwt", AutenticadorJWT.codificaJWT(clienteAuth));
             cookie.setMaxAge(-1); // La cookie tendrá un ciclo de vida igual al de la sesión.
@@ -118,14 +122,14 @@ public class ClienteControlador {
         DTO dtoCliente = new DTO();
         Cookie[] cookies = request.getCookies();
         long idUsuarioAutenticado = -1;
-        
+
         // Se busca el JWT en las cookies
         for (Cookie co : cookies) {
             if (co.getName().equals("jwt")) {
                 idUsuarioAutenticado = AutenticadorJWT.getIdClienteDesdeJWT(co.getValue()); // Extrae el id del JWT
             }
         }
-        
+
         // Recupera la información del cliente autenticado
         Cliente c = clienteRepo.findById(idUsuarioAutenticado).orElse(null);
         if (c != null) {
@@ -134,6 +138,7 @@ public class ClienteControlador {
             dtoCliente.put("email", c.getEmail());
             dtoCliente.put("telefono", c.getTelefono()); // Campo agregado
             dtoCliente.put("username", c.getUsername());
+            dtoCliente.put("rol", c.getRol());
         }
         return dtoCliente;
     }
@@ -156,14 +161,44 @@ public class ClienteControlador {
         String telefono;
         String username;
         String password;
+        String rol;
 
-        public DatosAltaCliente(String nombre, String email, String telefono, String username, String password) {
+        public DatosAltaCliente(String nombre, String email, String telefono, String username, String password, String rol) {
             super();
             this.nombre = nombre;
             this.email = email;
             this.telefono = telefono;
             this.username = username;
             this.password = password;
+            this.rol = rol;
         }
+    }
+
+    @PostMapping("/verificar-usuario")
+    public DTO verificarUsuario(@RequestBody DTO datos) {
+        DTO respuesta = new DTO();
+        String username = datos.get("username").toString();
+
+        Cliente clienteExistente = clienteRepo.findByUsername(username);
+        if (clienteExistente != null) {
+            respuesta.put("existe", true);
+        } else {
+            respuesta.put("existe", false);
+        }
+        return respuesta;
+    }
+
+    @PostMapping("/verificar-admin")
+    public DTO verificarAdmin(@RequestBody DTO datos) {
+        DTO respuesta = new DTO();
+        String username = datos.get("username").toString();
+
+        Cliente cliente = clienteRepo.findByUsername(username);
+        if (cliente != null && "admin".equals(cliente.getRol())) {
+            respuesta.put("esAdmin", true);
+        } else {
+            respuesta.put("esAdmin", false);
+        }
+        return respuesta;
     }
 }

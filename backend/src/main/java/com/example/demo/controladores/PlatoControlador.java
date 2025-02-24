@@ -35,27 +35,27 @@ public class PlatoControlador {
         return listPlatosDTO;
     }
 
-    @PostMapping(path = "/obtener1", consumes = MediaType.APPLICATION_JSON_VALUE)
-    public DTO getPlato(@RequestBody DTO soloId) {
-        DTO dtoPlato = new DTO();
-        Plato p = platoRepo.findById(Long.parseLong(soloId.get("id").toString())).orElse(null);
+    @GetMapping("/obtener/{id}")
+    public DTO getPlatoById(@PathVariable Long id) {
+        Plato p = platoRepo.findById(id).orElse(null);
         if (p != null) {
+            DTO dtoPlato = new DTO();
             dtoPlato.put("id", p.getId());
             dtoPlato.put("nombre", p.getNombre());
             dtoPlato.put("precio", p.getPrecio());
             dtoPlato.put("descripcion", p.getDescripcion());
             dtoPlato.put("img", p.getImg());
             dtoPlato.put("destacado", p.getDestacado());
+            return dtoPlato;
         } else {
-            dtoPlato.put("result", "fail");
+            return null; // or handle the case where the Plato is not found
         }
-        return dtoPlato;
     }
 
     @GetMapping("/obtener2")
-    public List<DTO> getPlatosDestacados(@RequestBody DTO soloId) {
+    public List<DTO> getPlatosDestacados() {
         List<DTO> listPlatosDTO = new ArrayList<>();
-        List<Plato> platos = platoRepo.findByDestacado((Boolean)soloId.get("destacado"));
+        List<Plato> platos = platoRepo.findByDestacado(true);
         for (Plato p : platos) {
             DTO dtoPlato = new DTO();
             dtoPlato.put("id", p.getId());
