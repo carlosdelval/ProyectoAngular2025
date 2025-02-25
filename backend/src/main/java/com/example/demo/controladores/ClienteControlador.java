@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -72,6 +73,27 @@ public class ClienteControlador {
             dtoCliente.put("result", "fail");
         }
         return dtoCliente;
+    }
+
+    @PutMapping(path = "/editar1", consumes = MediaType.APPLICATION_JSON_VALUE)
+    public DTO editarCliente(@RequestBody DTO datosActualizados) {
+        DTO dtoRespuesta = new DTO();
+        Cliente c = clienteRepo.findById(Long.parseLong(datosActualizados.get("id").toString())).orElse(null);
+
+        if (c != null) {
+            c.setNombre(datosActualizados.get("nombre").toString());
+            c.setEmail(datosActualizados.get("email").toString());
+            c.setTelefono(datosActualizados.get("telefono").toString());
+            c.setUsername(datosActualizados.get("username").toString());
+            c.setRol(datosActualizados.get("rol").toString());
+
+            clienteRepo.save(c);
+            dtoRespuesta.put("editado", "ok");
+        } else {
+            dtoRespuesta.put("editado", "fail");
+        }
+
+        return dtoRespuesta;
     }
 
     @DeleteMapping(path = "/borrar1", consumes = MediaType.APPLICATION_JSON_VALUE)
