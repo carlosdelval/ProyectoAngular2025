@@ -21,7 +21,9 @@ import com.example.demo.repositorios.PlatoRepositorio;
 public class PedidoControlador {
     @Autowired
     private PedidoRepositorio pedidoRepositorio;
+    @Autowired
     private PlatoRepositorio platoRepo;
+    @Autowired
     private ClienteRepositorio clienteRepo;
 
     @GetMapping("/obtener")
@@ -44,7 +46,7 @@ public class PedidoControlador {
     @PostMapping(path = "/obtener1", consumes = MediaType.APPLICATION_JSON_VALUE)
     public DTO getPedidosPorCliente(@RequestBody DTO soloId) {
         DTO respuesta = new DTO();
-        Long idCliente = Long.parseLong(soloId.get("id").toString());
+        Long idCliente = soloId.get("id") instanceof Number ? ((Number) soloId.get("id")).longValue() : null;
         List<Pedido> pedidos = pedidoRepositorio.findByClienteId(idCliente);
 
         if (!pedidos.isEmpty()) {
@@ -54,6 +56,8 @@ public class PedidoControlador {
                 dtoPedido.put("id", p.getId());
                 dtoPedido.put("fecha", p.getFecha_pedido());
                 dtoPedido.put("total", p.getTotal());
+                dtoPedido.put("cliente_id", p.getClienteId());
+                dtoPedido.put("plato_id", p.getPlatoId());
                 listaPedidos.add(dtoPedido);
             }
             respuesta.put("pedidos", listaPedidos);

@@ -1,44 +1,37 @@
 package com.example.demo.modelos;
 
 import jakarta.persistence.*;
+import java.util.Set;
 
 @Entity
 @Table(name = "cocineros")
 public class Cocinero {
-
+    
     @Id
-    private int id;
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Integer id;
+    
     private String nombre;
     private String especialidad;
+    
+    @ManyToMany
+    @JoinTable(
+        name = "cocineros_platos",
+        joinColumns = @JoinColumn(name = "cocinero_id"),
+        inverseJoinColumns = @JoinColumn(name = "plato_id")
+    )
+    private Set<Plato> platos;
 
-    public Cocinero(int id, String nombre, String especialidad) {
-        this.id = id;
-        this.nombre = nombre;
-        this.especialidad = especialidad;
-    }
+    // Getters y Setters
+    public Integer getId() { return id; }
+    public void setId(Integer id) { this.id = id; }
 
-    public int getId() {
-        return id;
-    }
+    public String getNombre() { return nombre; }
+    public void setNombre(String nombre) { this.nombre = nombre; }
 
-    public void setId(int id) {
-        this.id = id;
-    }
+    public String getEspecialidad() { return especialidad; }
+    public void setEspecialidad(String especialidad) { this.especialidad = especialidad; }
 
-    public String getNombre() {
-        return nombre;
-    }
-
-    public void setNombre(String nombre) {
-        this.nombre = nombre;
-    }
-
-    public String getEspecialidad() {
-        return especialidad;
-    }
-
-    public void setEspecialidad(String especialidad) {
-        this.especialidad = especialidad;
-    }
-
+    public Set<Plato> getPlatos() { return platos; }
+    public void setPlatos(Set<Plato> platos) { this.platos = platos; }
 }

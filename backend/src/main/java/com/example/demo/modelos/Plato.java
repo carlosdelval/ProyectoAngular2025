@@ -1,9 +1,12 @@
 package com.example.demo.modelos;
 
+import java.util.Set;
+
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.ManyToMany;
 import jakarta.persistence.Table;
 
 @Entity
@@ -17,6 +20,9 @@ public class Plato {
     private double precio;
     private String img;
     private Boolean destacado;
+
+    @ManyToMany(mappedBy = "platos")
+    private Set<Cocinero> cocineros;
 
     public Boolean getDestacado() {
         return destacado;
@@ -65,4 +71,7 @@ public class Plato {
     public void setPrecio(double precio) {
         this.precio = precio;
     }
+
+    public Set<Cocinero> getCocineros() { return cocineros; }
+    public void setCocineros(Set<Cocinero> cocineros) { this.cocineros = cocineros; }
 }

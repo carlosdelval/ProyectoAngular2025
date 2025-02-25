@@ -5,10 +5,11 @@ import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 import com.example.demo.modelos.Cocinero;
+import com.example.demo.modelos.Plato;
 import com.example.demo.repositorios.CocineroRepositorio;
-
 
 @CrossOrigin
 @RestController
@@ -18,15 +19,27 @@ public class CocineroControlador {
     @Autowired
     CocineroRepositorio cocineroRepo;
 
+    @Transactional
     @GetMapping("/obtener")
     public List<DTO> getCocineros() {
         List<DTO> listCocinerosDTO = new ArrayList<>();
         List<Cocinero> cocineros = cocineroRepo.findAll();
+
         for (Cocinero c : cocineros) {
             DTO dtoCocinero = new DTO();
             dtoCocinero.put("id", c.getId());
             dtoCocinero.put("nombre", c.getNombre());
             dtoCocinero.put("especialidad", c.getEspecialidad());
+
+            List<DTO> platosDTO = new ArrayList<>();
+            for (Plato p : c.getPlatos()) { // Asegúrate de tener una relación bien mapeada
+                DTO dtoPlato = new DTO();
+                dtoPlato.put("id", p.getId());
+                dtoPlato.put("nombre", p.getNombre());
+                platosDTO.add(dtoPlato);
+            }
+
+            dtoCocinero.put("platos", platosDTO);
             listCocinerosDTO.add(dtoCocinero);
         }
         return listCocinerosDTO;
