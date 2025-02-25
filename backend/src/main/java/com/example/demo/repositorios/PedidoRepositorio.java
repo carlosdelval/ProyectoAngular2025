@@ -17,7 +17,7 @@ public interface PedidoRepositorio extends JpaRepository<Pedido, Serializable> {
     
     public abstract Pedido findById(int id);
 
-    public abstract List<Pedido> findByClienteId(int clienteId);
+    public abstract List<Pedido> findByClienteId(Long clienteId);
 
     @SuppressWarnings("unchecked")
     @Transactional

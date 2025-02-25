@@ -13,6 +13,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -58,21 +59,23 @@ public class ClienteControlador {
         return listClientesDTO;
     }
 
-    @PostMapping(path = "/obtener1", consumes = MediaType.APPLICATION_JSON_VALUE)
-    public DTO getCliente(@RequestBody DTO soloId) {
-        DTO dtoCliente = new DTO();
-        Cliente c = clienteRepo.findById(Long.parseLong(soloId.get("id").toString())).orElse(null);
+    @GetMapping(path = "/obtener1/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
+    public DTO obtenerUsuarioPorId(@PathVariable Long id) {
+        DTO dtoRespuesta = new DTO();
+        Cliente c = clienteRepo.findById(id).orElse(null);
+
         if (c != null) {
-            dtoCliente.put("id", c.getId());
-            dtoCliente.put("nombre", c.getNombre());
-            dtoCliente.put("email", c.getEmail());
-            dtoCliente.put("telefono", c.getTelefono());
-            dtoCliente.put("username", c.getUsername());
-            dtoCliente.put("rol", c.getRol());
+            dtoRespuesta.put("id", c.getId());
+            dtoRespuesta.put("nombre", c.getNombre());
+            dtoRespuesta.put("email", c.getEmail());
+            dtoRespuesta.put("telefono", c.getTelefono());
+            dtoRespuesta.put("username", c.getUsername());
+            dtoRespuesta.put("rol", c.getRol());
         } else {
-            dtoCliente.put("result", "fail");
+            dtoRespuesta.put("error", "Usuario no encontrado");
         }
-        return dtoCliente;
+
+        return dtoRespuesta;
     }
 
     @PutMapping(path = "/editar1", consumes = MediaType.APPLICATION_JSON_VALUE)
@@ -285,4 +288,17 @@ public class ClienteControlador {
         }
         return respuesta;
     }
+
+    @PostMapping(path = "/obtener-cliente", consumes = MediaType.APPLICATION_JSON_VALUE)
+    public DTO getClienteById(@RequestBody DTO soloId) {
+        DTO dtoCliente = new DTO();
+        Cliente c = clienteRepo.findById(Long.parseLong(soloId.get("id").toString())).orElse(null);
+        if (c != null) {
+            dtoCliente.put("nombre", c.getNombre());
+        } else {
+            dtoCliente.put("result", "fail");
+        }
+        return dtoCliente;
+    }
+
 }

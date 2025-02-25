@@ -86,4 +86,5 @@ public class PlatoControlador {
     public void addNewPlato(@RequestBody Plato moto) {
         platoRepo.save(moto);
     }
+
 }
