@@ -11,7 +11,8 @@ import io.jsonwebtoken.impl.crypto.MacProvider;
 
 public class AutenticadorJWT {
 
-    // Clave de encriptación que se usará para generar el JWT. Será diferente en cada ejecución.
+    // Clave de encriptación que se usará para generar el JWT. Será diferente en
+    // cada ejecución.
     private static Key key = null;
 
     /**
@@ -23,10 +24,39 @@ public class AutenticadorJWT {
     public static String codificaJWT(Cliente c) {
         @SuppressWarnings("deprecation")
         String jws = Jwts.builder()
-            .setSubject(String.valueOf(c.getId())) // Usar String.valueOf() para asegurar que el ID se convierte a String correctamente.
-            .signWith(SignatureAlgorithm.HS512, getGeneratedKey()) // Firma con el algoritmo HS512 y la clave generada.
-            .compact(); // Genera el JWT compactado.
+                .setSubject(String.valueOf(c.getId())) // El ID sigue como el subject.
+                .claim("id", c.getId()) // Agregamos los datos adicionales.
+                .claim("nombre", c.getNombre())
+                .claim("email", c.getEmail())
+                .claim("username", c.getUsername())
+                .claim("role", c.getRol())
+                .signWith(SignatureAlgorithm.HS512, getGeneratedKey()) // Firma con HS512.
+                .compact();
         return jws;
+    }
+
+    public static Cliente decodificaJWT(String jwt) {
+        try {
+            @SuppressWarnings("deprecation")
+            var claims = Jwts.parser()
+                    .setSigningKey(getGeneratedKey()) // Usa la clave de firma correcta.
+                    .parseClaimsJws(jwt)
+                    .getBody();
+
+            // Extrae los datos del usuario
+            Cliente cliente = new Cliente();
+            cliente.setId(Integer.parseInt(claims.get("id").toString()));
+            cliente.setNombre(claims.get("nombre").toString());
+            cliente.setEmail(claims.get("email").toString());
+            cliente.setUsername(claims.get("username").toString());
+            cliente.setRol(claims.get("role").toString());
+
+            return cliente; // Devuelve el cliente decodificado.
+
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            return null; // Si hay un error, devuelve null.
+        }
     }
 
     /**
@@ -39,11 +69,11 @@ public class AutenticadorJWT {
         try {
             @SuppressWarnings("deprecation")
             String stringIdCliente = Jwts.parser()
-                .setSigningKey(getGeneratedKey()) // Establece la clave de firma.
-                .parseClaimsJws(jwt) // Analiza el JWT.
-                .getBody()
-                .getSubject(); // Obtiene el sujeto, que es el ID del cliente.
-            
+                    .setSigningKey(getGeneratedKey()) // Establece la clave de firma.
+                    .parseClaimsJws(jwt) // Analiza el JWT.
+                    .getBody()
+                    .getSubject(); // Obtiene el sujeto, que es el ID del cliente.
+
             return Integer.parseInt(stringIdCliente); // Convierte el ID en String a entero.
         } catch (Exception ex) {
             ex.printStackTrace();
@@ -52,7 +82,8 @@ public class AutenticadorJWT {
     }
 
     /**
-     * Obtiene el id de un cliente almacenado en un JWT que proviene de un request HTTP.
+     * Obtiene el id de un cliente almacenado en un JWT que proviene de un request
+     * HTTP.
      *
      * @param request El request HTTP que contiene el JWT.
      * @return El id del cliente del JWT, o -1 si no se puede obtener.

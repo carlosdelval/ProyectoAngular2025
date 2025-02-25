@@ -3,14 +3,19 @@ package com.example.demo.controladores;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -93,7 +98,7 @@ public class ClienteControlador {
                 datos.password, // Se guarda la contraseña tal cual como se recibe
                 new Date(),
                 "cliente" // Rol por defecto
-                ));
+        ));
     }
 
     @PostMapping(path = "/autentica", consumes = MediaType.APPLICATION_JSON_VALUE)
@@ -101,17 +106,22 @@ public class ClienteControlador {
         DTO dto = new DTO();
         dto.put("result", "FAIL");
 
-        // Se realiza la búsqueda del cliente con username y password tal cual como se
-        // reciben
         Cliente clienteAuth = clienteRepo.findByUsernameAndPassword(datos.username, datos.password);
 
         if (clienteAuth != null) {
+            String jwt = AutenticadorJWT.codificaJWT(clienteAuth);
             dto.put("result", "OK");
-            dto.put("jwt", AutenticadorJWT.codificaJWT(clienteAuth)); // Genera el JWT
+            dto.put("jwt", jwt);
+            dto.put("id", clienteAuth.getId());
+            dto.put("nombre", clienteAuth.getNombre());
+            dto.put("email", clienteAuth.getEmail());
+            dto.put("username", clienteAuth.getUsername());
+            dto.put("role", clienteAuth.getRol());
 
-            // Crear y añadir la cookie con el JWT
-            Cookie cookie = new Cookie("jwt", AutenticadorJWT.codificaJWT(clienteAuth));
-            cookie.setMaxAge(-1); // La cookie tendrá un ciclo de vida igual al de la sesión.
+            // Configurar cookie con el JWT
+            Cookie cookie = new Cookie("jwt", jwt);
+            cookie.setHttpOnly(true);
+            cookie.setMaxAge(60 * 60 * 24 * 7); // 7 días
             response.addCookie(cookie);
         }
         return dto;
@@ -143,6 +153,30 @@ public class ClienteControlador {
         return dtoCliente;
     }
 
+    @GetMapping("/datos-usuario")
+    public ResponseEntity<?> obtenerDatosUsuario(@RequestHeader("Authorization") String authHeader) {
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Token no válido");
+        }
+
+        String token = authHeader.substring(7);
+        int idCliente = AutenticadorJWT.getIdClienteDesdeJWT(token);
+        Cliente cliente = clienteRepo.findById(idCliente);
+
+        if (cliente == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Usuario no encontrado");
+        }
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("id", cliente.getId());
+        response.put("nombre", cliente.getNombre());
+        response.put("email", cliente.getEmail());
+        response.put("username", cliente.getUsername());
+        response.put("role", cliente.getRol());
+
+        return ResponseEntity.ok(response);
+    }
+
     static class DatosAutenticaCliente {
         String username;
         String password;
@@ -163,7 +197,8 @@ public class ClienteControlador {
         String password;
         String rol;
 
-        public DatosAltaCliente(String nombre, String email, String telefono, String username, String password, String rol) {
+        public DatosAltaCliente(String nombre, String email, String telefono, String username, String password,
+                String rol) {
             super();
             this.nombre = nombre;
             this.email = email;
@@ -172,6 +207,33 @@ public class ClienteControlador {
             this.password = password;
             this.rol = rol;
         }
+    }
+
+    @PostMapping("/verificar-token")
+    public DTO verificarToken(@RequestBody Map<String, String> body) {
+        DTO dto = new DTO();
+        String token = body.get("token");
+
+        if (token == null || token.isEmpty()) {
+            dto.put("valid", false);
+            return dto;
+        }
+
+        Cliente cliente = AutenticadorJWT.decodificaJWT(token);
+
+        if (cliente != null) {
+            dto.put("valid", true);
+            dto.put("user", Map.of(
+                    "id", cliente.getId(),
+                    "nombre", cliente.getNombre(),
+                    "email", cliente.getEmail(),
+                    "username", cliente.getUsername(),
+                    "role", cliente.getRol()));
+        } else {
+            dto.put("valid", false);
+        }
+
+        return dto;
     }
 
     @PostMapping("/verificar-usuario")

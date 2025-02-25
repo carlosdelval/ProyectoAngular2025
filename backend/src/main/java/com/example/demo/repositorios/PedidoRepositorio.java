@@ -13,20 +13,14 @@ import jakarta.transaction.Transactional;
 
 public interface PedidoRepositorio extends JpaRepository<Pedido, Serializable> {
 
-    @Bean
     public abstract List<Pedido> findAll();
     
     public abstract Pedido findById(int id);
 
-    public abstract Pedido findByClienteId(int clienteId);
-
-    public abstract Pedido findByDescripcion(String descripcion);
-
-    public abstract Pedido findByTotal(double total);
-
-    public abstract Pedido findByFechaPedido(Date fechaPedido);
+    public abstract List<Pedido> findByClienteId(int clienteId);
 
     @SuppressWarnings("unchecked")
     @Transactional
     public abstract Pedido save(Pedido pedido);
+    public abstract Pedido deleteById(int id);
 }
